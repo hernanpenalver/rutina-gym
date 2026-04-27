@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rutina">
+<title>Rutina Gym</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --card: #1c1c1c;
+    --border: #2a2a2a;
+    --accent: #e8ff3c;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #666;
+    --push: #ff6b35;
+    --pull: #3ce8b4;
+    --legs: #a78bfa;
+    --upper: #e8ff3c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 20px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .header-top h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .badge {
+    background: var(--border);
+    color: var(--muted);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-bottom: 3px;
+  }
+
+  /* DAY TABS */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 2px;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab[data-day="push"].active  { background: var(--push); border-color: var(--push); color: #0d0d0d; }
+  .tab[data-day="pull"].active  { background: var(--pull); border-color: var(--pull); color: #0d0d0d; }
+  .tab[data-day="legs"].active  { background: var(--legs); border-color: var(--legs); color: #fff; }
+  .tab[data-day="upper"].active { background: var(--upper); border-color: var(--upper); color: #0d0d0d; }
+
+  .tab[data-day="push"]:not(.active):hover  { border-color: var(--push); color: var(--push); }
+  .tab[data-day="pull"]:not(.active):hover  { border-color: var(--pull); color: var(--pull); }
+  .tab[data-day="legs"]:not(.active):hover  { border-color: var(--legs); color: var(--legs); }
+  .tab[data-day="upper"]:not(.active):hover { border-color: var(--upper); color: var(--upper); }
+
+  /* CONTENT */
+  .content { padding: 20px 16px; }
+
+  .day-panel { display: none; animation: fadeUp 0.25s ease; }
+  .day-panel.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* DAY HEADER */
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .day-dot {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .push .day-dot  { background: rgba(255,107,53,0.15); }
+  .pull .day-dot  { background: rgba(60,232,180,0.15); }
+  .legs .day-dot  { background: rgba(167,139,250,0.15); }
+  .upper .day-dot { background: rgba(232,255,60,0.15); }
+
+  .day-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .push .day-title  { color: var(--push); }
+  .pull .day-title  { color: var(--pull); }
+  .legs .day-title  { color: var(--legs); }
+  .upper .day-title { color: var(--upper); }
+
+  .day-sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 3px;
+    font-weight: 400;
+  }
+
+  /* EXERCISE CARDS */
+  .exercise-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .ex-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    user-select: none;
+  }
+
+  .ex-card.done {
+    background: #1a1a1a;
+    border-color: #333;
+    opacity: 0.5;
+  }
+
+  .ex-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    min-width: 28px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  .push  .ex-num { color: var(--push); }
+  .pull  .ex-num { color: var(--pull); }
+  .legs  .ex-num { color: var(--legs); }
+  .upper .ex-num { color: var(--upper); }
+
+  .ex-info { flex: 1; }
+
+  .ex-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+
+  .ex-card.done .ex-name { text-decoration: line-through; }
+
+  .ex-sets {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .ex-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+  }
+
+  .ex-card.done .ex-check {
+    background: #333;
+    border-color: #444;
+    color: #555;
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    margin-bottom: 18px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-bottom: 7px;
+    font-weight: 500;
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  .push  .progress-fill { background: var(--push); }
+  .pull  .progress-fill { background: var(--pull); }
+  .legs  .progress-fill { background: var(--legs); }
+  .upper .progress-fill { background: var(--upper); }
+
+  /* SCHEDULE */
+  .schedule-section {
+    margin-top: 28px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+  }
+
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .sched-day {
+    text-align: center;
+  }
+
+  .sched-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  .sched-dot {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .sched-dot.push  { background: rgba(255,107,53,0.2); color: var(--push); }
+  .sched-dot.pull  { background: rgba(60,232,180,0.2); color: var(--pull); }
+  .sched-dot.legs  { background: rgba(167,139,250,0.2); color: var(--legs); }
+  .sched-dot.upper { background: rgba(232,255,60,0.2); color: var(--upper); }
+  .sched-dot.rest  { color: var(--muted); }
+
+  /* NOTE */
+  .note {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: rgba(232,255,60,0.05);
+    border: 1px solid rgba(232,255,60,0.15);
+    border-radius: 10px;
+    font-size: 0.78rem;
+    color: #bbb;
+    line-height: 1.5;
+  }
+
+  .note strong { color: var(--accent); }
+
+  /* RESET BTN */
+  .reset-btn {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .reset-btn:hover { border-color: #555; color: #888; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <h1>RUTINA GYM</h1>
+    <div class="badge">4 días · Definición</div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-day="push" onclick="switchDay('push')">💥 PUSH</button>
+    <button class="tab" data-day="pull" onclick="switchDay('pull')">🔄 PULL</button>
+    <button class="tab" data-day="legs" onclick="switchDay('legs')">🦵 LEGS</button>
+    <button class="tab" data-day="upper" onclick="switchDay('upper')">⚡ UPPER</button>
+  </div>
+</header>
+
+<div class="content">
+
+  <!-- PUSH -->
+  <div class="day-panel push active" id="panel-push">
+    <div class="day-header">
+      <div class="day-dot">💥</div>
+      <div>
+        <div class="day-title">PUSH</div>
+        <div class="day-sub">Pecho · Hombro · Tríceps — Lunes</div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Progreso</span><span class="prog-text" id="prog-push">0 / 6</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="fill-push"></div></div>
+    </div>
+    <div class="exercise-list" id="list-push">
+      <div class="ex-card" onclick="toggle(this,'push')">
+        <div class="ex-num">01</div>
+        <div class="ex-info">
+          <div class="ex-name">Press banca inclinado con mancuernas</div>
+          <div class="ex-sets">4 series × 8-10 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'push')">
+        <div class="ex-num">02</div>
+        <div class="ex-info">
+          <div class="ex-name">Press militar con barra (o mancuernas)</div>
+          <div class="ex-sets">3 series × 8-10 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'push')">
+        <div class="ex-num">03</div>
+        <div class="ex-info">
+          <div class="ex-name">Aperturas en polea alta (pec deck)</div>
+          <div class="ex-sets">3 series × 12-15 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'push')">
+        <div class="ex-num">04</div>
+        <div class="ex-info">
+          <div class="ex-name">Elevaciones laterales</div>
+          <div class="ex-sets">4 series × 12-15 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'push')">
+        <div class="ex-num">05</div>
+        <div class="ex-info">
+          <div class="ex-name">Fondos en paralelas o press francés</div>
+          <div class="ex-sets">3 series × 10-12 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'push')">
+        <div class="ex-num">06</div>
+        <div class="ex-info">
+          <div class="ex-name">Extensión tríceps en polea</div>
+          <div class="ex-sets">3 series × 12-15 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetDay('push')">↺ Reiniciar día</button>
+  </div>
+
+  <!-- PULL -->
+  <div class="day-panel pull" id="panel-pull">
+    <div class="day-header">
+      <div class="day-dot">🔄</div>
+      <div>
+        <div class="day-title">PULL</div>
+        <div class="day-sub">Espalda · Bíceps · Rear delt — Martes</div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Progreso</span><span class="prog-text" id="prog-pull">0 / 6</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="fill-pull"></div></div>
+    </div>
+    <div class="exercise-list" id="list-pull">
+      <div class="ex-card" onclick="toggle(this,'pull')">
+        <div class="ex-num">01</div>
+        <div class="ex-info">
+          <div class="ex-name">Dominadas o jalón al pecho</div>
+          <div class="ex-sets">4 series × 8-10 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'pull')">
+        <div class="ex-num">02</div>
+        <div class="ex-info">
+          <div class="ex-name">Remo con barra o mancuerna</div>
+          <div class="ex-sets">4 series × 8-10 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'pull')">
+        <div class="ex-num">03</div>
+        <div class="ex-info">
+          <div class="ex-name">Pullover en polea</div>
+          <div class="ex-sets">3 series × 12-15 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'pull')">
+        <div class="ex-num">04</div>
+        <div class="ex-info">
+          <div class="ex-name">Face pulls o pájaros en polea</div>
+          <div class="ex-sets">3 series × 15 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'pull')">
+        <div class="ex-num">05</div>
+        <div class="ex-info">
+          <div class="ex-name">Curl con barra</div>
+          <div class="ex-sets">3 series × 10-12 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'pull')">
+        <div class="ex-num">06</div>
+        <div class="ex-info">
+          <div class="ex-name">Curl martillo</div>
+          <div class="ex-sets">3 series × 12 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetDay('pull')">↺ Reiniciar día</button>
+  </div>
+
+  <!-- LEGS -->
+  <div class="day-panel legs" id="panel-legs">
+    <div class="day-header">
+      <div class="day-dot">🦵</div>
+      <div>
+        <div class="day-title">LEGS</div>
+        <div class="day-sub">Cuádriceps · Isquios · Glúteos — Jueves</div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Progreso</span><span class="prog-text" id="prog-legs">0 / 6</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="fill-legs"></div></div>
+    </div>
+    <div class="exercise-list" id="list-legs">
+      <div class="ex-card" onclick="toggle(this,'legs')">
+        <div class="ex-num">01</div>
+        <div class="ex-info">
+          <div class="ex-name">Sentadilla libre o hack squat</div>
+          <div class="ex-sets">4 series × 8-10 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'legs')">
+        <div class="ex-num">02</div>
+        <div class="ex-info">
+          <div class="ex-name">Prensa 45°</div>
+          <div class="ex-sets">3 series × 10-12 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'legs')">
+        <div class="ex-num">03</div>
+        <div class="ex-info">
+          <div class="ex-name">Extensión de cuádriceps</div>
+          <div class="ex-sets">3 series × 12-15 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'legs')">
+        <div class="ex-num">04</div>
+        <div class="ex-info">
+          <div class="ex-name">Curl femoral acostado</div>
+          <div class="ex-sets">4 series × 10-12 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'legs')">
+        <div class="ex-num">05</div>
+        <div class="ex-info">
+          <div class="ex-name">Hip thrust o peso muerto rumano</div>
+          <div class="ex-sets">3 series × 10-12 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'legs')">
+        <div class="ex-num">06</div>
+        <div class="ex-info">
+          <div class="ex-name">Pantorrillas de pie</div>
+          <div class="ex-sets">4 series × 15-20 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetDay('legs')">↺ Reiniciar día</button>
+  </div>
+
+  <!-- UPPER -->
+  <div class="day-panel upper" id="panel-upper">
+    <div class="day-header">
+      <div class="day-dot">⚡</div>
+      <div>
+        <div class="day-title">UPPER</div>
+        <div class="day-sub">Torso completo — Viernes o Sábado</div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Progreso</span><span class="prog-text" id="prog-upper">0 / 6</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="fill-upper"></div></div>
+    </div>
+    <div class="exercise-list" id="list-upper">
+      <div class="ex-card" onclick="toggle(this,'upper')">
+        <div class="ex-num">01</div>
+        <div class="ex-info">
+          <div class="ex-name">Press banca plano con barra</div>
+          <div class="ex-sets">4 series × 6-8 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'upper')">
+        <div class="ex-num">02</div>
+        <div class="ex-info">
+          <div class="ex-name">Remo en polea sentado</div>
+          <div class="ex-sets">4 series × 10-12 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'upper')">
+        <div class="ex-num">03</div>
+        <div class="ex-info">
+          <div class="ex-name">Elevaciones laterales en polea</div>
+          <div class="ex-sets">3 series × 15 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'upper')">
+        <div class="ex-num">04</div>
+        <div class="ex-info">
+          <div class="ex-name">Aperturas con mancuernas</div>
+          <div class="ex-sets">3 series × 12-15 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'upper')">
+        <div class="ex-num">05</div>
+        <div class="ex-info">
+          <div class="ex-name">Curl inclinado</div>
+          <div class="ex-sets">3 series × 12 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+      <div class="ex-card" onclick="toggle(this,'upper')">
+        <div class="ex-num">06</div>
+        <div class="ex-info">
+          <div class="ex-name">Extensión tríceps sobre cabeza</div>
+          <div class="ex-sets">3 series × 12 reps</div>
+        </div>
+        <div class="ex-check">✓</div>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetDay('upper')">↺ Reiniciar día</button>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="schedule-section">
+    <div class="section-label">📅 Distribución semanal</div>
+    <div class="schedule-grid">
+      <div class="sched-day"><div class="sched-label">Lun</div><div class="sched-dot push">PUSH</div></div>
+      <div class="sched-day"><div class="sched-label">Mar</div><div class="sched-dot pull">PULL</div></div>
+      <div class="sched-day"><div class="sched-label">Mié</div><div class="sched-dot rest">—</div></div>
+      <div class="sched-day"><div class="sched-label">Jue</div><div class="sched-dot legs">LEGS</div></div>
+      <div class="sched-day"><div class="sched-label">Vie</div><div class="sched-dot upper">UPP</div></div>
+      <div class="sched-day"><div class="sched-label">Sáb</div><div class="sched-dot rest">—</div></div>
+      <div class="sched-day"><div class="sched-label">Dom</div><div class="sched-dot rest">—</div></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Definición:</strong> El déficit calórico lo hace la dieta. Las pesas preservan músculo. Agregá 2 sesiones de cardio moderado (30-40 min) en días de descanso para acelerar resultados.
+  </div>
+
+</div>
+
+<script>
+  function switchDay(day) {
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + day).classList.add('active');
+    document.querySelector('.tab[data-day="' + day + '"]').classList.add('active');
+  }
+
+  function toggle(card, day) {
+    card.classList.toggle('done');
+    updateProgress(day);
+  }
+
+  function updateProgress(day) {
+    const list = document.getElementById('list-' + day);
+    const cards = list.querySelectorAll('.ex-card');
+    const done = list.querySelectorAll('.ex-card.done').length;
+    const total = cards.length;
+    const pct = total > 0 ? (done / total * 100) : 0;
+    document.getElementById('fill-' + day).style.width = pct + '%';
+    document.getElementById('prog-' + day).textContent = done + ' / ' + total;
+  }
+
+  function resetDay(day) {
+    const list = document.getElementById('list-' + day);
+    list.querySelectorAll('.ex-card').forEach(c => c.classList.remove('done'));
+    updateProgress(day);
+  }
+</script>
+</body>
+</html>
